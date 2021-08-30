@@ -38,8 +38,17 @@ const renderer = createRenderer({
   setElementText(node, text) {
     node.addChild(new Text(text))
   },
+  // 注释
   createComment(text) {
-    return new Text(text)
+    // return new Text(text)
+  },
+  parentNode() {},
+  nextSibling() {},
+  remove(el) {
+    const parent = el.parent
+    if (parent) {
+      parent.removeChild(el)
+    }
   }
 })
 
