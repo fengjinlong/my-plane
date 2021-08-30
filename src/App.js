@@ -1,26 +1,47 @@
 import {
   defineComponent,
-  h
+  h,
+  computed,
+  ref
 } from '@vue/runtime-core'
 // import Circle from './component/Circle.js'
 import Startpage from './page/StartPage.js'
+import Gamepage from './page/GamePage.js'
 
 export default defineComponent({
-  render() {
-    const vnode = h('Container', [h(Startpage, {})])
+  setup() {
+    const currentPateName = ref('startPage')
 
-    // const vnode = h('rect', {
-    //   x: 50,
-    //   y: 50,
-    // }, 'adasd', h('circle', {
-    //   x: 100,
-    //   y: 100,
-    // }))
+    const currentPate = computed(() => {
+      console.log(currentPateName.value)
+      switch (currentPateName.value) {
+        
+        case 'startPage':
+          return Startpage
+          break;
+        case 'gamePage':
+          return Gamepage
+          break;
+        default:
+          break;
+      }
+      // return Gamepage
+    })
+    return {
+      currentPate,
+      currentPateName
+    }
+  },
+  render(ctx) {
+    console.log(ctx.currentPate)
+    const vnode = h('Container', [h(ctx.currentPate, {
+      onChangePage(page) {
+        console.log(page)
+        ctx.currentPateName = page
+      }
+    })])
 
-    // const vnode = h('rect', {
-    //   x: 50,
-    //   y: 50,
-    // }, 'adasd', h(Circle))
+
 
     return vnode
   }
