@@ -1,35 +1,54 @@
-//console.log('main')
 import {
   createRenderer
 } from '@vue/runtime-core'
 import {
   Graphics,
   Component,
+  Container,
+  Sprite,
+  Texture,
   Text
 } from 'pixi.js'
 
 const renderer = createRenderer({
   createElement(type) {
     let element;
-    if (type === 'rect') {
-      element = new Graphics();
-      element.beginFill(0xff0000)
-      element.drawRect(0, 0, 500, 500)
-      element.endFill()
+    switch (type) {
+      case 'Container':
+        element = new Container();
+        break
+      case 'Sprite':
+        element = new Sprite();
+        break
+        default:
+
     }
-    if (type === 'circle') {
-      element = new Graphics();
-      element.beginFill(0x9acd32)
-      element.drawCircle(0,0, 50)
-      element.endFill()
-    }
-    console.log(type)
+    // if (type === 'rect') {
+    //   element = new Graphics();
+    //   element.beginFill(0xff0000)
+    //   element.drawRect(0, 0, 500, 500)
+    //   element.endFill()
+    // }
+    // if (type === 'circle') {
+    //   element = new Graphics();
+    //   element.beginFill(0x9acd32)
+    //   element.drawCircle(0,0, 50)
+    //   element.endFill()
+    // }
+
     return element
   },
   patchProp(el, key, oldVal, newVal) {
-    el[key] = newVal
+    switch (key) {
+      case 'texture':
+        el.texture = Texture.from(newVal);
+        break;
+      default:
+        el[key] = newVal;
+        break;
+    }
   },
-  createText (text) {
+  createText(text) {
     return new Text(text)
   },
   insert(el, parent) {
