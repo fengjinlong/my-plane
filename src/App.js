@@ -7,6 +7,7 @@ import {
 
 import Startpage from './page/StartPage.js'
 import Gamepage from './page/GamePage.js'
+import Endpage from './page/endPage'
 
 
 export default defineComponent({
@@ -23,6 +24,8 @@ export default defineComponent({
         case 'gamePage':
           return Gamepage
           break;
+        case 'endPage':
+          return Endpage
         default:
           break;
       }
@@ -34,7 +37,6 @@ export default defineComponent({
     }
   },
   render(ctx) {
-    console.log(ctx.currentPate)
     const vnode = h('Container', [h(ctx.currentPate, {
       onChangePage(page) {
         console.log(page)
