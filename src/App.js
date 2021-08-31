@@ -4,9 +4,10 @@ import {
   computed,
   ref
 } from '@vue/runtime-core'
-// import Circle from './component/Circle.js'
+
 import Startpage from './page/StartPage.js'
 import Gamepage from './page/GamePage.js'
+
 
 export default defineComponent({
   setup() {

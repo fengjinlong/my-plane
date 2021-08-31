@@ -1,17 +1,53 @@
 import {
   h,
-  defineComponent
+  defineComponent,
+  reactive
 } from '@vue/runtime-core'
-// import StartPageImg from '../assets/start_page.jpg'
-import MapPageImg from '../assets/map.jpg'
+import MapPage from '../component/Map.js'
+import Flane from '../component/Flane.js'
 export default defineComponent({
+  setup() {
+    const planeinfo = getPlaneInfo()
+    
+    return {
+      planeinfo
+    }
+  },
   render(ctx) {
-    console.log(6666)
-    // <div><img /></div>
     return h('Container', [
-      h("Sprite", {
-        texture: MapPageImg
+      h(MapPage),
+      h(Flane, {
+        x: ctx.planeinfo.x,
+        y: ctx.planeinfo.y
       }),
     ])
   }
 })
+
+function getPlaneInfo () {
+  const planeinfo = reactive({
+    x: 200,
+    y: 200
+  })
+  const s = 50
+  window.addEventListener('keydown', ({
+    key
+  }) => {
+    console.log(key)
+    switch (key) {
+      case 'ArrowLeft':
+        planeinfo.x -= s;
+        break;
+      case 'ArrowRight':
+        planeinfo.x += s;
+        break;
+      case 'ArrowUp':
+        planeinfo.y -= s;
+        break;
+      case 'ArrowDown':
+        planeinfo.y += s;
+        break;
+    }
+  })
+  return planeinfo
+}
