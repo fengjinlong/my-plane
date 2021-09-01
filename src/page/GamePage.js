@@ -8,6 +8,8 @@ import {
 import MapPage from '../component/Map.js'
 import Flane from '../component/Flane.js'
 import EnemyFlane from '../component/EnemyFlane.js'
+import Bullet from '../component/Bullet.js'
+
 import {
   game
 } from '../Game.js'
@@ -20,46 +22,41 @@ export default defineComponent({
     emit
   }) {
     const planeinfo = getPlaneInfo()
-    const enemyinfo = etEnemyInfoArr()
+    const enemyInfo = etEnemyInfoArr()
+    const {
+      bullets,
+      addBullet
+    } = bulletInfoArr()
 
 
-    const handle = () => {
-      enemyinfo.map(enemy => {
-        enemy.y += 5
-      })
 
-      enemyinfo.forEach(el => {
-        if (hit(el, planeinfo)) {
-          console.log('hit')
-          // emit('endGame')
 
-          emit('changePage', 'endPage')
-        } else {
-          // console.log('nn')
-        }
-      })
+    const onAttack = (bullet) => {
+      // console.log(bullets)
+      addBullet(bullet)
+      // console.log(bullets)
     }
-    onMounted(() => {
-      game.ticker.add(handle)
-    })
-    onUnmounted(() => {
-      game.ticker.remove(handle)
-    })
-    // 敌机下落
 
-
-
+    useFighting(bullets, enemyInfo, planeinfo)
 
     return {
       planeinfo,
-      enemyinfo
+      enemyinfo: enemyInfo,
+      bullets,
+      onAttack
     }
   },
   render(ctx) {
+    // 子弹
+    const bulletArr = ctx.bullets.map(info => {
+      return h(Bullet, {
+        ...info
+      })
+    })
     const enemyArr = ctx.enemyinfo.map((info) => {
       return h(EnemyFlane, {
         x: info.x,
-        y: info.y,
+        y: info.y
       })
     })
 
@@ -67,12 +64,69 @@ export default defineComponent({
       h(MapPage),
       h(Flane, {
         x: ctx.planeinfo.x,
-        y: ctx.planeinfo.y
+        y: ctx.planeinfo.y,
+        onAttack: ctx.onAttack
       }),
-      ...enemyArr
+      ...enemyArr,
+      ...bulletArr
     ])
   }
 })
+
+function useFighting(bullets, enemyInfo, planeinfo) {
+  const handle = () => {
+    // 我的子弹向上飞
+    bullets.map(info => {
+      info.y -= 2
+    })
+    // 敌机下走
+    enemyInfo.map(enemy => {
+      enemy.y += 1
+    })
+    // 我飞机 敌机 碰撞 游戏结束
+    enemyInfo.forEach(el => {
+      if (hit(el, planeinfo)) {
+        emit('changePage', 'endPage')
+      }
+    })
+
+    // 我子弹 敌机碰撞 子弹敌机消失
+    bullets.forEach((bullet, bulletIndex) => {
+      enemyInfo.forEach((ene, enemyIndex) => {
+        if (hit(bullet, ene)) {
+          bullets.splice(bulletIndex, 1)
+          enemyInfo.splice(enemyIndex, 1)
+        }
+      })
+    })
+
+  }
+  onMounted(() => {
+    game.ticker.add(handle)
+  })
+  onUnmounted(() => {
+    game.ticker.remove(handle)
+  })
+}
+
+
+
+// 子弹
+function bulletInfoArr() {
+  const bullets = reactive([{}])
+  const addBullet = (bullet) => {
+    // console.log(bullet)
+    bullets.push({
+      ...bullet,
+      width: 61,
+      height: 99
+    })
+  }
+  return {
+    bullets,
+    addBullet,
+  }
+}
 
 function etEnemyInfoArr() {
   const enemyinfoArr = reactive([{
@@ -95,7 +149,6 @@ function getPlaneInfo() {
   window.addEventListener('keydown', ({
     key
   }) => {
-    console.log(key)
     switch (key) {
       case 'ArrowLeft':
         planeinfo.x -= s;

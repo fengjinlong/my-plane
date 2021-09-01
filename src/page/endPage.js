@@ -12,7 +12,7 @@ export default defineComponent({
       emit('changePage', 'startPage')
     }
     return {
-      onClick
+      onClick: onClick
     }
   },
   render(ctx) {
