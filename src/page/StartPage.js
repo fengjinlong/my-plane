@@ -2,33 +2,34 @@ import {
   h,
   defineComponent
 } from '@vue/runtime-core'
-// import StartPageImg from '../assets/start_page.jpg'
-import StartPageImg from '../assets/start_page.jpg'
-import StartBtn from '../assets/startBtn.png'
+import startPageImg from '../assets/start_page.jpg'
+import startBtn from '../assets/startBtn.png'
+import {stage} from '../config'
+
 export default defineComponent({
-  setup(props, {emit}) {
+  setup(props, ctx) {
     const onClick = () => {
-      emit('changePage', 'gamePage')
+      ctx.emit('changePage', 'GamePage')
     }
     return {
       onClick
     }
   },
   render(ctx) {
-    // <div><img /></div>
-    return h('Container', [
-      h("Sprite", {
-        texture: StartPageImg
-      }),
-      h("Sprite", {
-        texture: StartBtn,
-        x: 226,
-        y: 515,
-        // 允许点击
-        interactive: true,
-        onClick: ctx.onClick
-
-      })
-    ])
+    return h('Container', [h('Sprite', {
+      texture: startPageImg,
+      width: stage.width, 
+      height: stage.height,
+    }),
+    h('Sprite', {
+      texture: startBtn,
+      width: 160, 
+      height: 50,
+      x: 115,
+      y: 254,
+      interactive: true,
+      onClick: ctx.onClick
+    })
+  ])
   }
 })

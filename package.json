@@ -1,16 +1,23 @@
 {
-  "name": "my-plane",
+  "name": "my-plane2",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
   "scripts": {
     "build": "webpack",
-    "dev": "webpack-dev-server --open --mode=development",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "webpack-dev-server --open --mode=development"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fengjinlong/my-plane2.git"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/fengjinlong/my-plane2/issues"
+  },
+  "homepage": "https://github.com/fengjinlong/my-plane2#readme",
   "devDependencies": {
     "webpack": "^4.44.1",
     "webpack-cli": "^3.3.12",

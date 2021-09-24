@@ -1,13 +1,12 @@
 import {Application} from 'pixi.js'
+import {stage} from './config'
 
 export const game = new Application({
-  width: 750,
-  height: 1080
+  width: stage.width,
+  height: stage.height,
 })
-
 document.body.append(game.view)
 
-export function getRootContainer () {
+export function getRootContainer() {
   return game.stage
 }
-

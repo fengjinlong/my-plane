@@ -1,168 +1,203 @@
 import {
   h,
-  defineComponent,
+  ref,
+  toRaw,
+  toRefs,
+  isReactive,
   reactive,
   onMounted,
   onUnmounted,
+  defineComponent,
+  watch,
 } from '@vue/runtime-core'
-import MapPage from '../component/Map.js'
-import Flane from '../component/Flane.js'
-import EnemyFlane from '../component/EnemyFlane.js'
-import Bullet from '../component/Bullet.js'
+import useFighting from './fighting'
+import {
+  useEnemyTrack,
+  multipleAttack,
+  useEnemyPlanesFix
+} from './useEnemyTrack'
+import {
+  stage,
+  ENEMY,
+  ENEMYTOTAL,
+  ENEMYBULLET
+} from '../config'
+import {game} from '../GameContainer'
 
-import {
-  game
-} from '../Game.js'
-import {
-  hit
-} from '../utils/index.js'
+import Mapg from '../components/Map'
+import Plane from '../components/plane'
+import EnemyPlane from '../components/enemyPlane'
+
+import Bullet from '../components/bullet'
+import EnemyBullet from '../components/enemyBullet'
+// 生产敌方飞机
+const useEnemyPlanes = () => {
+  // 敌方飞机初始数据
+  const initData = (x) => {
+    return {
+      x,
+      y: 200,
+      width: ENEMY.width,
+      height: ENEMY.height,
+      life: ENEMY.life,
+    }
+  }
+
+  const enemyPlanes = reactive([])
+  let tt;
+  onMounted(() => {
+    tt = setInterval(() => {
+      let x = Math.floor(Math.random() * stage.width);
+      let y = Math.floor(Math.random() * stage.width);
+      // 375 130
+      x = x > stage.width - ENEMY.width ? y : x
+      // 飞机不超过10个
+      if (enemyPlanes.length > ENEMYTOTAL) {
+        clearInterval(tt)
+        return
+      }
+      enemyPlanes.push(initData(x))
+    }, 50)
+  })
+  onUnmounted(() => {
+    clearInterval(tt)
+  })
+  return enemyPlanes
+}
 
 export default defineComponent({
   setup(props, {
     emit
   }) {
-    const planeinfo = getPlaneInfo()
-    const enemyInfo = etEnemyInfoArr()
+
+
+    // 我方飞机
+    const planeInfo = useCreatePlan()
+    // 敌方飞机
+    let enemyPlaneInfo = useEnemyPlanesFix()
+    // 我方子弹
     const {
-      bullets,
+      bulletsArr,
       addBullet
-    } = bulletInfoArr()
+    } = useBullets()
 
-
-
-
-    const onAttack = (bullet) => {
-      // console.log(bullets)
-      addBullet(bullet)
-      // console.log(bullets)
+    // 发射我方子弹
+    const onAttack = (info) => {
+      addBullet(info)
     }
 
-    useFighting(bullets, enemyInfo, planeinfo)
+    // 地方总子弹集合 
+    const enemyBArr = reactive([])
+    // 敌机发射子弹
+    const shoot = (info) => {
+      let s = {
+        width: ENEMYBULLET.width,
+        height: ENEMYBULLET.height,
+      }
+      enemyBArr.push(Object.assign(s, info))
+    }
+
+    // 战斗逻辑
+    // useFighting(emit, planeInfo, enemyPlaneInfo, bulletsArr, enemyBArr)
+    useFighting(emit, planeInfo, enemyPlaneInfo, bulletsArr, enemyBArr)
+
+    // 起飞的敌机发起了进攻
+    let ttt= setTimeout(()=>{
+
+      multipleAttack(enemyPlaneInfo, emit)
+      clearTimeout(ttt)
+    }, 8000)
+
 
     return {
-      planeinfo,
-      enemyinfo: enemyInfo,
-      bullets,
-      onAttack
+      planeInfo,
+      onAttack,
+      shoot,
+      enemyBArr,
+      bulletsArr,
+      enemyPlaneInfo
     }
   },
   render(ctx) {
     // 子弹
-    const bulletArr = ctx.bullets.map(info => {
+    const bulletsArr = ctx.bulletsArr.map(bullet => {
       return h(Bullet, {
-        ...info
+        x: bullet.x,
+        y: bullet.y
       })
     })
-    const enemyArr = ctx.enemyinfo.map((info) => {
-      return h(EnemyFlane, {
-        x: info.x,
-        y: info.y
+    // 敌方子弹
+    const enemyBulletsArr = ctx.enemyBArr.map(b => {
+      return h(EnemyBullet, {
+        x: b.x,
+        y: b.y,
       })
-    })
 
+    })
+    const enemyPlanes = ctx.enemyPlaneInfo.map(pla => {
+      return h(EnemyPlane, {
+        x: pla.x,
+        y: pla.y,
+        width: pla.width,
+        height: pla.height,
+        onAttack: (m) => {
+          ctx.shoot(m)
+        }
+      })
+    })
     return h('Container', [
-      h(MapPage),
-      h(Flane, {
-        x: ctx.planeinfo.x,
-        y: ctx.planeinfo.y,
-        onAttack: ctx.onAttack
+      h(Mapg),
+      h(Plane, {
+        x: ctx.planeInfo.x,
+        y: ctx.planeInfo.y,
+        onAttack: ctx.onAttack,
       }),
-      ...enemyArr,
-      ...bulletArr
+      ...enemyPlanes,
+      ...bulletsArr,
+      ...enemyBulletsArr
     ])
   }
 })
 
-function useFighting(bullets, enemyInfo, planeinfo) {
-  const handle = () => {
-    // 我的子弹向上飞
-    bullets.map(info => {
-      info.y -= 2
-    })
-    // 敌机下走
-    enemyInfo.map(enemy => {
-      enemy.y += 1
-    })
-    // 我飞机 敌机 碰撞 游戏结束
-    enemyInfo.forEach(el => {
-      if (hit(el, planeinfo)) {
-        emit('changePage', 'endPage')
-      }
-    })
-
-    // 我子弹 敌机碰撞 子弹敌机消失
-    bullets.forEach((bullet, bulletIndex) => {
-      enemyInfo.forEach((ene, enemyIndex) => {
-        if (hit(bullet, ene)) {
-          bullets.splice(bulletIndex, 1)
-          enemyInfo.splice(enemyIndex, 1)
-        }
-      })
-    })
-
-  }
-  onMounted(() => {
-    game.ticker.add(handle)
-  })
-  onUnmounted(() => {
-    game.ticker.remove(handle)
-  })
-}
-
-
-
-// 子弹
-function bulletInfoArr() {
-  const bullets = reactive([{}])
-  const addBullet = (bullet) => {
-    // console.log(bullet)
-    bullets.push({
-      ...bullet,
-      width: 61,
-      height: 99
+// 我方子弹
+function useBullets() {
+  const bulletsArr = reactive([])
+  const addBullet = (b) => {
+    bulletsArr.push({
+      ...b,
+      width: 30,
+      height: 50
     })
   }
   return {
-    bullets,
-    addBullet,
+    bulletsArr,
+    addBullet
   }
 }
 
-function etEnemyInfoArr() {
-  const enemyinfoArr = reactive([{
-    x: 50,
-    y: 50,
-    width: 308,
-    height: 207
-  }])
-  return enemyinfoArr
-}
-
-function getPlaneInfo() {
-  const planeinfo = reactive({
-    x: 200,
-    y: 400,
-    width: 258,
-    height: 364
+function useCreatePlan() {
+  const planeInfo = reactive({
+    x: 0,
+    y: 600,
+    width: 64,
+    height: 90
   })
-  const s = 50
-  window.addEventListener('keydown', ({
-    key
-  }) => {
-    switch (key) {
-      case 'ArrowLeft':
-        planeinfo.x -= s;
+  const speed = 30
+  window.addEventListener('keydown', (e) => {
+    switch (e.code) {
+      case "ArrowUp":
+        planeInfo.y -= speed
+        break
+      case "ArrowDown":
+        planeInfo.y += speed
+        break
+      case "ArrowLeft":
+        planeInfo.x -= speed
         break;
-      case 'ArrowRight':
-        planeinfo.x += s;
-        break;
-      case 'ArrowUp':
-        planeinfo.y -= s;
-        break;
-      case 'ArrowDown':
-        planeinfo.y += s;
+      case "ArrowRight":
+        planeInfo.x += speed
         break;
     }
   })
-  return planeinfo
+  return planeInfo
 }

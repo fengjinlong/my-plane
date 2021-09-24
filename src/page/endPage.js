@@ -2,31 +2,34 @@ import {
   h,
   defineComponent
 } from '@vue/runtime-core'
-import endPage from '../assets/end_page.jpg'
-import restartBtn from '../assets/restartBtn.png'
+import endPageImg from '../assets/end_page.jpg'
+import reStartBtn from '../assets/restartBtn.png'
+import {stage} from '../config'
+
 export default defineComponent({
-  setup(props, {
-    emit
-  }) {
+  setup(props, ctx) {
     const onClick = () => {
-      emit('changePage', 'startPage')
+      ctx.emit('changePage', 'GamePage')
     }
     return {
-      onClick: onClick
+      onClick
     }
   },
   render(ctx) {
-    return h('Container', [
-      h("Sprite", {
-        texture: endPage
-      }),
-      h("Sprite", {
-        x: 215,
-        y: 530,
-        texture: restartBtn,
-        interactive: true, // 不加 点击事件无效
-        onClick: ctx.onClick
-      })
-    ])
+    return h('Container', [h('Sprite', {
+      texture: endPageImg,
+      width: stage.width, 
+      height: stage.height,
+    }),
+    h('Sprite', {
+      texture: reStartBtn,
+      width: 160, 
+      height: 50,
+      x: 115,
+      y: 254,
+      interactive: true,
+      onClick: ctx.onClick
+    })
+  ])
   }
 })

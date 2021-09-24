@@ -1,51 +1,51 @@
 import {
   defineComponent,
   h,
-  computed,
-  ref
+  ref,
+  computed
 } from '@vue/runtime-core'
 
-import Startpage from './page/StartPage.js'
-import Gamepage from './page/GamePage.js'
-import Endpage from './page/endPage'
+import StartPage from './page/StartPage.js'
+import GamePage from './page/GamePage'
+import EndPage from './page/EndPage'
+import {
+  game
+} from './GameContainer'
 
+import {
+  handleTickerAll
+} from './page/fighting'
 
 export default defineComponent({
   setup() {
-    const currentPateName = ref('startPage')
+    const currentPageName = ref('StartPage')
 
-    const currentPate = computed(() => {
-      console.log(currentPateName.value)
-      switch (currentPateName.value) {
-        
-        case 'startPage':
-          return Startpage
-          break;
-        case 'gamePage':
-          return Gamepage
-          break;
-        case 'endPage':
-          return Endpage
-        default:
-          break;
+    const currentPage = computed(() => {
+      if (currentPageName.value === 'StartPage') {
+        return StartPage
+      } else if (currentPageName.value === 'GamePage') {
+        return GamePage
+      } else if (currentPageName.value === 'EndPage') {
+        return EndPage
       }
-      // return Gamepage
     })
     return {
-      currentPate,
-      currentPateName
+      currentPageName,
+      currentPage,
     }
   },
   render(ctx) {
-    const vnode = h('Container', [h(ctx.currentPate, {
-      onChangePage(page) {
-        console.log(page)
-        ctx.currentPateName = page
-      }
-    })])
+    return h('Container', [
+      h(ctx.currentPage, {
+        onChangePage: (page) => {
+          ctx.currentPageName = page
+        },
+        onHit() {
+          console.log('hit')
+          game.ticker.remove(handleTickerAll[0])
+        },
+      })
+    ])
 
-
-
-    return vnode
   }
 })

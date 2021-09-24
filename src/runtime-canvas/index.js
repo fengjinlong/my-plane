@@ -1,69 +1,62 @@
 import {
   createRenderer
 } from '@vue/runtime-core'
+// createRenderer 这个方法在vue 默认的dom渲染器里面有一些options，
+// 如果我们直接使用，汇报一些问题，为了实现我们非dom的渲染器，所以我们要把它抽离出来
+// 同时，按照他的需要给他传一些options的参数，这些参数有一些方法作为必选的参数
+// 需要什么参数，报什么错误，我们添加什么参数
+
 import {
   Graphics,
-  Component,
-  Container,
-  Sprite,
-  Texture,
-  Text
+  Text,
+  Container,Texture,
+  Sprite 
 } from 'pixi.js'
 
 const renderer = createRenderer({
   createElement(type) {
     let element;
-    switch (type) {
-      case 'Container':
-        element = new Container();
-        break
-      case 'Sprite':
-        element = new Sprite();
-        break
-        default:
-
+    if (type === 'Container') {
+      element = new Container();
+    } else if (type === 'Sprite') {
+      element = new Sprite()
     }
-    // if (type === 'rect') {
-    //   element = new Graphics();
+    // if(type === 'rect'){
+    //   element = new Graphics()
     //   element.beginFill(0xff0000)
-    //   element.drawRect(0, 0, 500, 500)
+    //   element.drawRect(0,0, 500,500)
+    //   element.endFill()
+    // } else if (type === 'circle') {
+    //   element = new Graphics()
+    //   element.beginFill(0xff8888)
+    //   element.drawCircle(0,0,50)
     //   element.endFill()
     // }
-    // if (type === 'circle') {
-    //   element = new Graphics();
-    //   element.beginFill(0x9acd32)
-    //   element.drawCircle(0,0, 50)
-    //   element.endFill()
-    // }
-
     return element
   },
-  patchProp(el, key, oldVal, newVal) {
+  patchProp(el, key, pv, nv) {
     switch (key) {
-      case 'texture':
-        el.texture = Texture.from(newVal);
+      case "texture":
+        el.texture = Texture.from(nv);
         break;
-      case 'onClick':
-        el.on('pointertap', newVal)
+      case "onClick":
+        el.on('pointertap', nv)
         break;
       default:
-        el[key] = newVal;
-        break;
+        el[key] = nv
     }
   },
-  createText(text) {
-    return new Text(text)
+  setElementText(node, text) {
+    const txt = new Text(text)
+    node.addChild(txt)
+  },
+  createText(t) {
+    return new Text(t)
   },
   insert(el, parent) {
     parent.addChild(el)
   },
-  setElementText(node, text) {
-    node.addChild(new Text(text))
-  },
-  // 注释
-  createComment(text) {
-    // return new Text(text)
-  },
+  createComment() {},
   parentNode() {},
   nextSibling() {},
   remove(el) {
